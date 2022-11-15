@@ -1,5 +1,5 @@
 # Torrlund
-History is written by the victors, unless they can't write, in which case readers beware.
+RIP
 
 # Things not created during the jam
 * `scripts/update_mtg.sh` script taken from CTF
