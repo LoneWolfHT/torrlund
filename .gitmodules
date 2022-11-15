@@ -1,0 +1,3 @@
+[submodule "mods/ext_libs/creatura"]
+	path = mods/ext_libs/creatura
+	url = https://github.com/ElCeejo/creatura.git
