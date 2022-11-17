@@ -39,7 +39,7 @@ local function register_compressable(name, max, def)
 			use_texture_alpha = def.use_texture_alpha,
 			paramtype = def.paramtype,
 			sunlight_propogates = def.sunlight_propogates,
-			groups = {breakable = 1},
+			groups = {breakable = 1, not_in_creative_inventory = 1},
 			blast_replace = rep,
 			drop = name:sub(1, -2),
 			on_dig = rep and function(pos, node, digger)
