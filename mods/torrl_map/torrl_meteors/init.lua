@@ -41,6 +41,13 @@ if not minetest.settings:get_bool("creative_mode", false) then
 	end)
 end
 
+minetest.register_node("torrl_meteors:meteorite", {
+	description = "Meteorite",
+	tiles = {"torrl_meteors_meteorite.png"},
+	light_source = 5,
+	groups = {meltable = 1, blastable = 1, falling_node = 1},
+})
+
 local fall_speed = 40
 minetest.register_entity("torrl_meteors:meteor", {
 	initial_properties = {
@@ -103,6 +110,7 @@ minetest.register_entity("torrl_meteors:meteor", {
 			minetest.sound_stop(self.falling_sound)
 
 			torrl_effects.explosion(pos, 5, torrl_effects.type.fire, function()
+				minetest.set_node(pos, {name = "torrl_meteors:meteorite"})
 				minetest.sound_play({name = "torrl_meteors_meteor_explode"}, {
 					pos = pos,
 					gain = 3.0,

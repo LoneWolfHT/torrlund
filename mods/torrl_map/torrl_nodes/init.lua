@@ -2,6 +2,10 @@ torrl_nodes = {
 	blast_ignore = {}
 }
 
+local modpath = minetest.get_modpath(minetest.get_current_modname())
+
+dofile(modpath.."/repairs.lua")
+
 --
 --- Processed Blocks, T.R.E.C Unit
 --
@@ -20,17 +24,25 @@ local function register_compressable(name, max, def)
 			if digger and digger:is_player() then
 				minetest.node_dig(pos, node, digger)
 			else
-				minetest.swap_node(pos, {name = name.."_2"})
+				minetest.swap_node(pos, {name = name.."2"})
 			end
 		end
 	})
 
-	name = name .. "_"
+	name = name .. "_" -- this will show up in the on_dig code above
 
 	for i = 2, max do
 		local rep = name..(i+1)
+		local heal = name..(i-1)
+
+		if i == 2 then
+			heal = name:sub(1, -2)
+		end
 
 		if i == max then rep = nil end
+
+		def.groups.not_in_creative_inventory = 1
+		def.groups.cracked = 1
 
 		minetest.register_node(name..i, {
 			drawtype = def.drawtype,
@@ -39,14 +51,15 @@ local function register_compressable(name, max, def)
 			use_texture_alpha = def.use_texture_alpha,
 			paramtype = def.paramtype,
 			sunlight_propogates = def.sunlight_propogates,
-			groups = {breakable = 1, not_in_creative_inventory = 1},
+			groups = def.groups,
 			blast_replace = rep,
-			drop = name:sub(1, -2),
+			heal_replace = heal,
+			drop = rep and name:sub(1, -2) or "",
 			on_dig = rep and function(pos, node, digger)
 				if digger and digger:is_player() then
 					minetest.node_dig(pos, node, digger)
-				elseif i ~= max then
-					minetest.swap_node(pos, {name = name..(i+1)})
+				elseif rep then
+					minetest.swap_node(pos, {name = rep})
 				end
 			end
 		})
@@ -59,7 +72,7 @@ register_compressable("torrl_nodes:dirt_compressed", 3, {
 	groups = {breakable = 1},
 })
 
-register_compressable("torrl_nodes:stone_compressed", 5, {
+register_compressable("torrl_nodes:stone_compressed", 6, {
 	description = "Compressed Stone",
 	texture = "torrl_nodes_stone.png^torrl_nodes_compact_overlay.png",
 	groups = {breakable = 1},
@@ -75,10 +88,12 @@ register_compressable("torrl_nodes:glass", 3, {
 	sunlight_propogates = true,
 })
 
-dofile(minetest.get_modpath(minetest.get_current_modname()).."/trec_unit.lua")({
-	["torrl_nodes:dirt" ] = "torrl_nodes:dirt_compressed" ,
-	["torrl_nodes:stone"] = "torrl_nodes:stone_compressed",
-	["torrl_nodes:sand" ] = "torrl_nodes:glass" ,
+dofile(modpath.."/trec_unit.lua")({
+	["torrl_nodes:dirt" ]  = "torrl_nodes:dirt_compressed",
+	["torrl_nodes:stone"]  = "torrl_nodes:stone_compressed",
+	["torrl_nodes:sand" ]  = "torrl_nodes:glass",
+	["torrl_nodes:tree"]   = "torrl_nodes:repair_tape",
+	["torrl_nodes:leaves"] = "torrl_nodes:repair_tape",
 })
 
 --

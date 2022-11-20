@@ -133,7 +133,7 @@ minetest.register_on_joinplayer(function(player)
 	local status = meta:get_string("torrl_player:trec_unit_status")
 	local name = player:get_player_name()
 
-	player:set_armor_groups({alien = 100})
+	player:set_armor_groups({fleshy = 100})
 
 	if meta:get_int("torrl_player:dead") > 0 then
 		resurrect(player, name, meta)
@@ -148,6 +148,17 @@ minetest.register_on_joinplayer(function(player)
 
 		return
 	end
+
+	minetest.sound_play({name = "welcome_message" .. (math.random(15) == 1 and "_rare" or "")}, {
+		to_player = name,
+		gain = 1.2,
+	}, true)
+
+	minetest.chat_send_player(name, minetest.colorize(
+		"cyan",
+		"<C.O.M.P Unit> Greetings, your ship is badly damaged. "..
+		"Use your T.R.E.C Unit to synthesize the materials needed to repair it"
+	))
 
 	player:set_pos(vector.new(0, 9, 0))
 	player:set_look_horizontal(math.pi) -- Face the mountain across the spawn ravine

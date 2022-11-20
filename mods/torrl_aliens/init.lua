@@ -1,8 +1,12 @@
 torrl_aliens = {
-	target_list = {}
+	target_list = {},
+	target_list_trecs = {},
 }
 
-local schempath = minetest.get_modpath(minetest.get_current_modname()).."/schematics/"
+local modpath = minetest.get_modpath(minetest.get_current_modname()) .. "/"
+local schempath = modpath .. "schematics/"
+
+dofile(modpath .. "aliens.lua")
 
 minetest.register_node("torrl_aliens:ship_armor", {
 	description = "Alien Ship Armor",
@@ -18,10 +22,11 @@ minetest.register_node("torrl_aliens:ship_core", {
 	tiles = {"torrl_aliens_ship_core.png"},
 	paramtype = "light",
 	light_source = 8,
-	groups = {breakable = 1, explosive = 3},
+	groups = {breakable = 1},
+	explosive = 4,
 	explosion_type = torrl_effects.type.alien,
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
-		torrl_effects.explosion(pos, 3, torrl_effects.type.alien)
+		torrl_effects.explosion(pos, 4, torrl_effects.type.alien)
 	end
 })
 
@@ -31,9 +36,11 @@ minetest.register_node("torrl_aliens:ship_turret", {
 	drawtype = "mesh",
 	mesh = "torrl_aliens_ship_turret.obj",
 	paramtype = "light",
+	use_texture_alpha = "clip",
 	light_source = 4,
 	tiles = {"torrl_aliens_ship_turret.png"},
-	groups = {blastable = 1, explosive = 1},
+	groups = {blastable = 1},
+	explosive = 1,
 	explosion_type = torrl_effects.type.alien,
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
 		torrl_effects.explosion(pos, 1, torrl_effects.type.alien)
@@ -67,15 +74,21 @@ local SHIP_SHOOT_INTERVAL = 30
 local ALIEN_SHIP_INTERVAL = function() return math.random(60, 60 * 3) end
 local ALIEN_SHIP_YPOS = 66
 local SHIP_SIZE = 20
+local MAX_ALIEN_COUNT = 8
 
 local current_ships = {}
-torrl_core.register_on_game_restart(function()
-	current_ships = {}
 
-	for i, pos in pairs(current_ships) do
-		minetest.delete_area(pos:subtract(SHIP_SIZE), pos:add(SHIP_SIZE))
+local function delete_ships()
+	if #current_ships > 0 then
+		for i, pos in pairs(current_ships) do
+			minetest.delete_area(pos:subtract(SHIP_SIZE), pos:add(SHIP_SIZE))
+		end
+
+		current_ships = {}
 	end
-end)
+end
+
+torrl_core.register_on_game_restart(delete_ships)
 
 local function shoot(ship)
 	if #torrl_aliens.target_list >= 1 then
@@ -109,10 +122,19 @@ local function shoot(ship)
 				return
 			end
 
+			local time = minetest.get_timeofday()
+			if time <= 0.82 and time >= 0.18 then
+				return delete_ships()
+			end
+
 			local dir = pos:direction(ppos)
 
 			ppos = ppos:add(dir:multiply(5))
-			pos = pos:copy():offset(0, -1, 0)
+			pos = pos:copy():offset(0, -2, 0)
+
+			for t=0, math.random(MAX_ALIEN_COUNT-1) do
+				minetest.after(t, minetest.add_entity, pos, "torrl_aliens:alien_mini")
+			end
 
 			local ray = minetest.raycast(pos, ppos, true, false)
 
@@ -122,7 +144,7 @@ local function shoot(ship)
 					dir = hitpos:direction(pos)
 					local dist = hitpos:distance(pos)
 
-					-- Laser won't load if player has a small viewing range
+					-- Laser wouldn't load if player had a small viewing range
 					for _, obj in pairs({
 						minetest.add_entity(hitpos:add(dir:multiply(dist * 0.75)), "torrl_aliens:laser_beam"),
 						minetest.add_entity(hitpos:add(dir:multiply(dist * 0.25)), "torrl_aliens:laser_beam"),
@@ -136,7 +158,7 @@ local function shoot(ship)
 					elseif pointed_thing.type == "object" and pointed_thing.ref then
 						pointed_thing.ref:punch(
 							minetest.add_entity(vector.new(0, 0, 0), "torrl_aliens:laser_beam"),
-							nil, {damage_groups = {alien = 8}}, dir
+							nil, {damage_groups = {fleshy = 8}}, dir
 						)
 					end
 
@@ -158,18 +180,22 @@ minetest.register_globalstep(function(dtime)
 	if target_timer >= 5 then
 		target_timer = 0
 		torrl_aliens.target_list = {}
+		torrl_aliens.target_list_trecs = {}
 
 		local players = minetest.get_connected_players()
 
 		for _, p in pairs(players) do
 			local meta = p:get_meta()
 
-			if p:get_hp() > 0 and p:get_pos().y <= 80 and not p:get_armor_groups().immortal then
+			if p:get_hp() > 0 and p:get_pos().y <= ALIEN_SHIP_YPOS - 10 and not p:get_armor_groups().immortal then
 				table.insert(torrl_aliens.target_list, p)
 			end
 
 			if meta:get_string("torrl_player:trec_unit_status") == "placed" then
-				table.insert(torrl_aliens.target_list, minetest.string_to_pos(meta:get_string("torrl_player:trec_unit_pos")))
+				local trecpos = minetest.string_to_pos(meta:get_string("torrl_player:trec_unit_pos"))
+
+				table.insert(torrl_aliens.target_list, trecpos)
+				table.insert(torrl_aliens.target_list_trecs, trecpos)
 			end
 		end
 	end

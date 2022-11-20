@@ -8,7 +8,7 @@ globals = {
 
 	"creatura",
 
-	"VoxelManip", "VoxelArea", "PseudoRandom",
+	"VoxelManip", "VoxelArea", "PseudoRandom", "ItemStack",
 	"vector", "table", "string",
 	math = {
 		fields = {

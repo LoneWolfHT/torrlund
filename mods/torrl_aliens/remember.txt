@@ -1,0 +1,1 @@
+Utility setting functions are only run when they're a change of utitily/goal

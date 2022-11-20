@@ -18,6 +18,7 @@ minetest.register_tool("torrl_tools:mappick", {
 local files = {
 	"update_wear.lua",
 	"hammer_of_power.lua",
+	"sword_of_fire.lua",
 }
 
 for _, file in ipairs(files) do

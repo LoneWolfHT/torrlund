@@ -15,6 +15,11 @@ local function spawn_companion(player)
 	return obj
 end
 
+local tools = {
+	["torrl_tools:hammer"] = "torrl_tools:sword",
+	["torrl_tools:sword"]  = "torrl_tools:hammer",
+}
+
 minetest.register_entity("torrl_player:comp_unit", {
 	initial_properties = {
 		is_visible = true,
@@ -22,11 +27,11 @@ minetest.register_entity("torrl_player:comp_unit", {
 		collide_with_objects = false,
 		pointable = true,
 
-		collisionbox = { -0.45, -0.45, -0.45, 0.45, 0.45, 0.45 },
-		selectionbox = { -0.45, -0.45, -0.45, 0.45, 0.45, 0.45, rotate = true },
+		collisionbox = { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25 },
+		selectionbox = { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25, rotate = true },
 
 		visual = "mesh",
-		visual_size = {x = 0.9, y = 0.9, z = 0.9},
+		visual_size = {x = 0.5, y = 0.5, z = 0.5},
 		mesh = "torrl_player_comp_unit.obj",
 		textures = {"torrl_player_comp_unit.png"},
 		use_texture_alpha = true,
@@ -37,16 +42,13 @@ minetest.register_entity("torrl_player:comp_unit", {
 		automatic_face_movement_dir = -90.0,
 		automatic_face_movement_max_rotation_per_sec = 720,
 
-		nametag = "01",
-		nametag_color = "green",
-
-		infotext = "C.O.M.P Unit",
+		infotext = "Your C.O.M.P Unit",
 		static_save = false,
-		damage_texture_modifier = "^[brighten",
 	},
-
 	on_activate = function(self, staticdata, dtime_s)
 		self.object:set_armor_groups({alien=100})
+
+		self.set_nametag = true
 
 		if not self.hp_set then
 			self.object:set_hp(20)
@@ -100,7 +102,16 @@ minetest.register_entity("torrl_player:comp_unit", {
 	on_death = function(self, killer)
 		torrl_effects.explosion(self.object:get_pos(), 24, torrl_effects.type.fire)
 	end,
-	-- on_rightclick = function(self, clicker),
+	on_rightclick = function(self, clicker)
+		if clicker:is_player() and clicker:get_player_name() == self.owner then
+			local item = clicker:get_wielded_item()
+			local itemname = item:get_name()
+
+			if tools[itemname] and item:get_wear() == 0 then
+				clicker:set_wielded_item(tools[itemname])
+			end
+		end
+	end,
 	-- on_attach_child = function(self, child),
 	-- on_detach_child = function(self, child),
 	-- on_detach = function(self, parent),
@@ -109,5 +120,5 @@ minetest.register_entity("torrl_player:comp_unit", {
 })
 
 minetest.register_on_joinplayer(function(player)
-	-- spawn_companion(player)
+	spawn_companion(player)
 end)

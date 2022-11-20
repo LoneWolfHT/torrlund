@@ -1,0 +1,2 @@
+Voice
+	Amplify, Tremolo, Delay, Pitch

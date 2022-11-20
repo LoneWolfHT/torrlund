@@ -24,7 +24,7 @@ function torrl_effects.particle_effect(obj, settings)
 		maxexptime = settings.particle_life_max or settings.particle_life,
 		minsize = 1.9 * (settings.size_mult or 1),
 		maxsize = 2.1 * (settings.size_mult or 1),
-		collisiondetection = true,
+		collisiondetection = false,
 		collision_removal = settings.collison_removal,
 		object_collision = true,
 		attached = obj,
@@ -44,6 +44,7 @@ local function explosion(vm, s_data, s_pos1, s_pos2, s_pos, s_radius, s_type, ca
 
 		local length = vector.length
 		local add = vector.add
+		local round = vector.round
 		local get_name_from_content_id = minetest.get_name_from_content_id
 		local get_content_id = minetest.get_content_id
 
@@ -54,20 +55,20 @@ local function explosion(vm, s_data, s_pos1, s_pos2, s_pos, s_radius, s_type, ca
 		for x = -radius, radius do
 			local p = {x=x, y=y, z=z}
 			local r = length(p)
-			if (radius * radius) / (r * r) >= (pr:next(80, 125) / 100) then
+			if data[vi] and (radius * radius) / (r * r) >= (pr:next(80, 125) / 100) then
 				local nodename = get_name_from_content_id(data[vi])
 				local def = minetest.registered_nodes[nodename]
 
-				if def.groups and def.groups.explosive then
+				if def.explosive then
 					blast_queue[add(pos, p)] = {
 						type = def.explosion_type,
-						intensity = def.groups.explosive,
+						intensity = def.explosive,
 						nodename = nodename,
 					}
 				end
 
 				if def.on_torrl_blast then
-					on_blast_queue[add(pos, p)] = {nodename = nodename, type = etype}
+					on_blast_queue[round(add(pos, p))] = {nodename = nodename, type = etype}
 				end
 
 				if not def.groups or not def.groups.blast_ignore then
@@ -88,28 +89,28 @@ local function explosion(vm, s_data, s_pos1, s_pos2, s_pos, s_radius, s_type, ca
 		vm:set_data(a_data)
 		vm:write_to_map(true)
 
-		local max
-		local min
-		local _
-
-		for pos in pairs(blast_queue) do
-			if max then
-				_, max = vector.sort(max, pos)
-				min, _ = vector.sort(min, pos)
-			else
-				max = pos
-				min = pos
-			end
-		end
-
 		for pos, info in pairs(on_blast_queue) do
 			minetest.registered_nodes[info.nodename].on_torrl_blast(pos, info.type)
 		end
 
-		if #blast_queue >= 1 then
+		if next(blast_queue) then
+			local max
+			local min
+			local _
+
+			for pos in pairs(blast_queue) do
+				if max then
+					_, max = vector.sort(max, pos)
+					min = vector.sort(min, pos)
+				else
+					max = pos
+					min = pos
+				end
+			end
+
 			local b_pos1, b_pos2 = vm:read_from_map(
-				s_pos:subtract(s_radius),
-				s_pos:add(s_radius)
+				min,
+				max
 			)
 			local b_data = vm:get_data()
 
@@ -133,6 +134,13 @@ local function explosion(vm, s_data, s_pos1, s_pos2, s_pos, s_radius, s_type, ca
 			particle_life_min = 2,
 			particle_life_max = 3,
 		})
+
+		for _, obj in pairs(minetest.get_objects_inside_radius(s_pos, s_radius/2)) do
+			local dir = vector.direction(s_pos, obj:get_pos())
+
+			obj:punch(obj, nil, {damage_groups = {fleshy = s_radius/2, alien = s_radius/2}}, dir)
+			obj:add_velocity(dir:multiply(s_radius))
+		end
 
 		if callback then
 			callback()

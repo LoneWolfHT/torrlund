@@ -76,17 +76,22 @@ return function(compressables)
 			"torrl_nodes_trec_unit_front.png",
 		},
 		paramtype2 = "facedir",
+		drop = "",
 		groups = {breakable = 1, blast_ignore = 1},
 		light_source = minetest.LIGHT_MAX,
 		on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
-			if itemstack then
+			if itemstack and clicker and clicker:is_player() then
 				local iname = itemstack:get_name()
 
 				for from, to in pairs(compressables) do
 					if iname == from then
 						itemstack:set_name(to)
 
-						return itemstack
+						minetest.after(0, function()
+							clicker:get_inventory():add_item("main", itemstack)
+						end)
+
+						return ""
 					end
 				end
 			end
@@ -140,13 +145,11 @@ return function(compressables)
 			end
 		end,
 		can_dig = function(pos, player)
-			if player then
-				if player:is_player() then
-					local meta = minetest.get_meta(pos):get_string("owner")
+			if player and player:is_player() then
+				local meta = minetest.get_meta(pos):get_string("owner")
 
-					if meta == player:get_player_name() then
-						return true
-					end
+				if meta == player:get_player_name() then
+					return true
 				end
 
 				return false
@@ -157,9 +160,19 @@ return function(compressables)
 		after_dig_node = function(pos, oldnode, oldmetadata, digger)
 			local owner = minetest.get_player_by_name(oldmetadata.fields.owner)
 
-			owner:get_meta():set_string("torrl_player:trec_unit_status", "inv")
+			if digger and digger:is_player() then
+				owner:get_meta():set_string("torrl_player:trec_unit_status", "inv")
+				owner:get_inventory():add_item("main", "torrl_nodes:trec_unit")
 
-			trec_unit.remove_hud(owner)
+				trec_unit.remove_hud(owner)
+			else
+				if owner then
+					owner:get_meta():set_string("torrl_player:trec_unit_status", "dead")
+					trec_unit.remove_hud(owner)
+				end
+
+				torrl_effects.explosion(pos, 10, torrl_effects.type.fire)
+			end
 		end
 	})
 
