@@ -1,17 +1,39 @@
+torrl_player = {
+	won = false,
+}
+
 local modpath = minetest.get_modpath(minetest.get_current_modname()) .. "/"
 
 dofile(modpath.."comp_unit.lua")
 
-local function newplayer(player)
+torrl_core.register_on_game_restart(function()
+	minetest.set_timeofday(0.22)
+	torrl_player.won = false
+end)
+
+local function reset_inv(player)
 	local inv = player:get_inventory()
+	local pos = player:get_pos()
+	local meta = player:get_meta()
+
+	for _, i in pairs(inv:get_list("main")) do
+		if i:get_definition().droppable then
+			minetest.after(0.1, minetest.add_item, pos, i)
+		end
+	end
+
+	player:get_inventory():set_list("main", {})
 
 	inv:add_item("main", "torrl_tools:hammer")
-	inv:add_item("main", "torrl_nodes:trec_unit")
 
-	player:get_meta():set_string("torrl_player:trec_unit_status", "inv")
+	if meta:get_string("torrl_player:trec_unit_status") ~= "placed" then
+		inv:add_item("main", "torrl_nodes:trec_unit")
+
+		meta:set_string("torrl_player:trec_unit_status", "inv")
+	end
 end
 
-minetest.register_on_newplayer(newplayer)
+minetest.register_on_newplayer(reset_inv)
 
 local function place_trec_unit(pos, oname)
 	if minetest.get_node(pos).name == "ignore" then
@@ -32,7 +54,7 @@ minetest.register_on_respawnplayer(function(player)
 	local meta = player:get_meta()
 	local status = meta:get_string("torrl_player:trec_unit_status")
 
-	if status == "dead" or status == "inv" then
+	if torrl_player.won or status == "dead" or status == "inv" then
 		local name = player:get_player_name()
 
 		meta:set_int("torrl_player:dead", 1)
@@ -52,25 +74,43 @@ minetest.register_on_respawnplayer(function(player)
 		privs.noclip = true
 		minetest.set_player_privs(name, privs)
 
-		gameover_huds[name] = player:hud_add({
-			position = {x = 0.5, y = 0.5},
-			scale = {x = 100, y = 100},
-			text = "Game Over. A restart will happen when all players are dead",
-			number = 0xFF0000,
-			alignment = {x = 0, y = -1},
-			offset = {x = 0, y = -12},
-			size = {x = 2},
-		})
+		if not torrl_player.won then
+			gameover_huds[name] = player:hud_add({
+				position = {x = 0.5, y = 0.5},
+				scale = {x = 100, y = 100},
+				text = "Game Over. It will restart when everyone is dead",
+				number = 0xFF0000,
+				alignment = {x = 0, y = -1},
+				offset = {x = 0, y = -12},
+				size = {x = 2},
+			})
+		else
+			gameover_huds[name] = player:hud_add({
+				position = {x = 0.5, y = 0.5},
+				scale = {x = 100, y = 100},
+				text = "Game Won! It will restart when all players exit the ship",
+				number = 0x00FF00,
+				alignment = {x = 0, y = -1},
+				offset = {x = 0, y = -12},
+				size = {x = 2},
+			})
+		end
 
 		player:get_inventory():set_list("main", {})
+	else
+		reset_inv(player)
 	end
 
-	if status == "placed" or status == "dead" then
+	if status == "placed" then
 		player:set_pos(minetest.string_to_pos(meta:get_string("torrl_player:trec_unit_pos")):offset(0, 1, 0))
 		return true
 	end
 
-	player:set_pos(vector.new(0, 9, 0))
+	if torrl_player.won then
+		player:set_pos(vector.new(0, 10001, 0))
+	else
+		player:set_pos(vector.new(0, 9, 0))
+	end
 
 	return true
 end)
@@ -99,7 +139,7 @@ local function resurrect(player, name, meta)
 		player:hud_remove(gameover_huds[name])
 	end
 
-	newplayer(player)
+	reset_inv(player)
 end
 
 local timer = 0
@@ -119,6 +159,11 @@ minetest.register_globalstep(function(dtime)
 		end
 
 		if not found then
+			if torrl_player.won then
+				minetest.request_shutdown("Resetting Map...", true)
+				return
+			end
+
 			torrl_core.game_restart()
 
 			for _, player in pairs(players) do
@@ -133,7 +178,9 @@ minetest.register_on_joinplayer(function(player)
 	local status = meta:get_string("torrl_player:trec_unit_status")
 	local name = player:get_player_name()
 
-	player:set_armor_groups({fleshy = 100})
+	torrl_voiceover.say_greeting(name)
+
+	reset_inv(player)
 
 	if meta:get_int("torrl_player:dead") > 0 then
 		resurrect(player, name, meta)
@@ -149,23 +196,8 @@ minetest.register_on_joinplayer(function(player)
 		return
 	end
 
-	minetest.sound_play({name = "welcome_message" .. (math.random(15) == 1 and "_rare" or "")}, {
-		to_player = name,
-		gain = 1.2,
-	}, true)
-
-	minetest.chat_send_player(name, minetest.colorize(
-		"cyan",
-		"<C.O.M.P Unit> Greetings, your ship is badly damaged. "..
-		"Use your T.R.E.C Unit to synthesize the materials needed to repair it"
-	))
-
 	player:set_pos(vector.new(0, 9, 0))
 	player:set_look_horizontal(math.pi) -- Face the mountain across the spawn ravine
-end)
-
-torrl_core.register_on_game_restart(function()
-	minetest.set_timeofday(0.2)
 end)
 
 minetest.after(0, torrl_core.game_restart)

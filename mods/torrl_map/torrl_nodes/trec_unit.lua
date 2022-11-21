@@ -1,4 +1,5 @@
 local huds = {}
+local score = 0
 
 trec_unit = {
 	add_hud = function(player, pos)
@@ -66,6 +67,39 @@ minetest.register_globalstep(function(dtime)
 	end
 end)
 
+local scoretimer = 0
+minetest.register_globalstep(function(dtime)
+	scoretimer = scoretimer + dtime
+
+	if scoretimer >= 2 then
+		scoretimer = 0
+
+		local players = minetest.get_connected_players()
+		if score >= #players * 5 then
+			minetest.chat_send_all(minetest.colorize(
+				"cyan",
+				"<C.O.M.P Unit> Repairing ship, stand by..."
+			))
+
+			torrl_player.won = true
+			score = 0
+
+			minetest.after(1, function()
+				local shippos = vector.new(0, 10001, 0)
+				for _, p in pairs(players) do
+					p:get_inventory():set_list("main", {})
+					p:set_pos(shippos)
+					p:set_hp(20)
+				end
+			end)
+		end
+	end
+end)
+
+torrl_core.register_on_game_restart(function()
+	score = 0
+end)
+
 return function(compressables)
 	minetest.register_node("torrl_nodes:trec_unit", {
 		description = "T.R.E.C Unit",
@@ -85,11 +119,19 @@ return function(compressables)
 
 				for from, to in pairs(compressables) do
 					if iname == from then
-						itemstack:set_name(to)
+						if to == "score" then
+							score = score + itemstack:get_count()
 
-						minetest.after(0, function()
-							clicker:get_inventory():add_item("main", itemstack)
-						end)
+							minetest.chat_send_player(clicker:get_player_name(), ("Need %d more to repair ship"):format(
+								math.max((#minetest.get_connected_players() * 5) - score, 0)
+							))
+						else
+							itemstack:set_name(to)
+
+							minetest.after(0, function()
+								clicker:get_inventory():add_item("main", itemstack)
+							end)
+						end
 
 						return ""
 					end
@@ -97,7 +139,7 @@ return function(compressables)
 			end
 		end,
 		on_torrl_blast = function(pos, type)
-			if type == torrl_effects.type.alien then
+			if type == torrl_effects.type.alien and math.random(10) == 1 then
 				local owner = minetest.get_meta(pos):get_string("owner")
 
 				if owner then
@@ -117,6 +159,7 @@ return function(compressables)
 			if pointed_thing and pointed_thing.above and
 			placer and placer:is_player() then
 				local pos = pointed_thing.above
+				local name = placer:get_player_name()
 
 				if minetest.get_node(pos:offset(0, 1, 0)).name == "air" and
 				minetest.get_node(pos:offset(0, 2, 0)).name == "air"
@@ -124,7 +167,7 @@ return function(compressables)
 					local meta = placer:get_meta()
 
 					if meta:get_string("torrl_player:trec_unit_status") ~= "inv" then
-						minetest.chat_send_player(placer:get_player_name(), "You can only have 1 trec unit at a time")
+						minetest.chat_send_player(name, "You can only have 1 trec unit at a time")
 						return
 					end
 
@@ -132,15 +175,17 @@ return function(compressables)
 					itemstack:set_count(itemstack:get_count() - 1)
 					local nmeta = minetest.get_meta(pos)
 
-					nmeta:set_string("owner", placer:get_player_name())
+					nmeta:set_string("owner", name)
 					meta:set_string("torrl_player:trec_unit_status", "placed")
 					meta:set_string("torrl_player:trec_unit_pos", minetest.pos_to_string(pos))
+
+					torrl_voiceover.say_trec(name)
 
 					trec_unit.add_hud(placer, pos)
 
 					return itemstack
 				else
-					minetest.chat_send_player(placer:get_player_name(), "You need 2 nodes of space above your T.R.E.C unit")
+					minetest.chat_send_player(name, "You need 2 nodes of space above your T.R.E.C unit")
 				end
 			end
 		end,

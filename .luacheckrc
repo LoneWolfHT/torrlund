@@ -2,13 +2,15 @@ unused_args = false
 
 globals = {
 	"torrl_core",
-	"torrl_tools", "torrl_effects", "torrl_nodes", "torrl_aliens",
+	"torrl_tools", "torrl_effects", "torrl_nodes", "torrl_aliens", "torrl_player",
+	"torrl_voiceover",
 
 	"trec_unit",
 
-	"creatura",
+	"creatura", "fire",
 
 	"VoxelManip", "VoxelArea", "PseudoRandom", "ItemStack",
+	"Settings",
 	"vector", "table", "string",
 	math = {
 		fields = {

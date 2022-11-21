@@ -71,8 +71,14 @@ minetest.register_entity("torrl_aliens:laser_beam", {
 })
 
 local SHIP_SHOOT_INTERVAL = 30
-local ALIEN_SHIP_INTERVAL = function() return math.random(60, 60 * 3) end
+local ALIEN_SHIP_INTERVAL = function()
+	return math.random(60, math.max(60 * (5 - #minetest.get_connected_players()), 90))
+end
+local ALIEN_LASER_RADIUS = function()
+	return math.ceil(#minetest.get_connected_players()/2)
+end
 local ALIEN_SHIP_YPOS = 66
+local ALIEN_SHIP_PR = 40
 local SHIP_SIZE = 20
 local MAX_ALIEN_COUNT = 8
 
@@ -153,8 +159,19 @@ local function shoot(ship)
 						obj:set_properties({visual_size = {x = 0.2, y = 0.2, z = math.round(dist/2)}})
 					end
 
+					minetest.sound_play({name = "torrl_aliens_laser"}, {
+						pos = pointed_thing.intersection_point,
+						gain = 1.3,
+						max_hear_distance = 40,
+					}, true)
+					minetest.sound_play({name = "torrl_aliens_laser"}, {
+						pos = pos,
+						gain = 1,
+						max_hear_distance = 20,
+					}, true)
+
 					if pointed_thing.above then
-						torrl_effects.explosion(pointed_thing.above, 2, torrl_effects.type.alien)
+						torrl_effects.explosion(pointed_thing.above, ALIEN_LASER_RADIUS(), torrl_effects.type.alien)
 					elseif pointed_thing.type == "object" and pointed_thing.ref then
 						pointed_thing.ref:punch(
 							minetest.add_entity(vector.new(0, 0, 0), "torrl_aliens:laser_beam"),
@@ -173,8 +190,9 @@ end
 
 local timer = 0
 local target_timer = 0
+local creative = minetest.settings:get_bool("creative_mode", false)
+local target_interval = 20
 minetest.register_globalstep(function(dtime)
-	timer = timer + dtime
 	target_timer = target_timer + dtime
 
 	if target_timer >= 5 then
@@ -200,23 +218,35 @@ minetest.register_globalstep(function(dtime)
 		end
 	end
 
-	if timer >= ALIEN_SHIP_INTERVAL() then
-		timer = 0
+	if creative then return end
 
-		local time = minetest.get_timeofday()
-		if time >= 0.82 or time <= 0.18 then
+	local time = minetest.get_timeofday()
+	if time >= 0.82 or time <= 0.18 then
+		torrl_voiceover.say_followed()
+
+		timer = timer + dtime
+		if timer >= target_interval then
+			target_interval = ALIEN_SHIP_INTERVAL()
+			timer = 0
+
 			local players = minetest.get_connected_players()
 
 			if #players >= 1 then
-				local pos = players[math.random(#players)]:get_pos():offset(math.random(-30, 30), 0, math.random(-30, 30))
+				local pos = players[math.random(#players)]:get_pos():offset(
+					math.random(-ALIEN_SHIP_PR, ALIEN_SHIP_PR),
+					0,
+					math.random(-ALIEN_SHIP_PR, ALIEN_SHIP_PR)
+				)
 
 				pos.y = ALIEN_SHIP_YPOS
+
+				torrl_voiceover.say_detected()
 
 				local pos1, pos2 = pos:add(SHIP_SIZE), pos:subtract(SHIP_SIZE)
 				minetest.emerge_area(pos:add(SHIP_SIZE), pos:subtract(SHIP_SIZE), function(_, _, remaining)
 					if remaining <= 0 then
-						torrl_effects.explosion(pos, SHIP_SIZE, torrl_effects.type.alien, function()
-							minetest.after(1, function()
+						torrl_effects.explosion(pos, SHIP_SIZE/1.5, torrl_effects.type.alien, function()
+							minetest.after(4, function()
 								minetest.place_schematic(pos, schempath .. "torrl_aliens_ship.mts", "random", nil, false, {
 									place_center_x = true, place_center_y = true, place_center_z = true
 								})

@@ -1,3 +1,9 @@
+local config = Settings(minetest.get_worldpath() .. "/world.mt")
+if config:get("backend") ~= "dummy" then
+	config:set("backend","dummy")
+	config:write()
+end
+
 minetest.set_mapgen_setting("mg_name", "flat", true)
 minetest.set_mapgen_setting("mg_flags", "nocaves, nodungeons, light, decorations, biomes", true)
 minetest.set_mapgen_setting("mgflat_spflags", "hills, lakes", true)

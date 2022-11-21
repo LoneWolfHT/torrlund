@@ -115,6 +115,14 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 		width = 0.4,
 		height = 0.8,
 	},
+	sounds = {
+		hurt = {
+			name = "torrl_aliens_hit",
+			gain = 1,
+			distance = 16,
+			variations = 3
+		}
+	},
 	static_save = false,
 	animations = {
 		anim = {range = {x = 1, y = 10}, speed = 30, frame_blend = 0.3, loop = true}
@@ -141,7 +149,7 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 	step_func = function(self, dtime, moveresult)
 		self.look_timer = (self.look_timer or math.random(-1, 1)) + dtime
 
-		if self.target_pos and self.look_timer >= 2 then
+		if self.target_pos and self.look_timer >= 3 then
 			self.look_timer = 0
 
 			local pos = self.object:get_pos()
@@ -183,17 +191,6 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 				for _, collision in pairs(moveresult.collisions) do
 					if collision.type == "node" and (collision.node_pos.y >= pos.y or collision.old_velocity.y >= 0) then
 						collision = collision.node_pos
-
-						minetest.add_particle({
-							pos = collision,
-							expirationtime = 2,
-							size = 5,
-							collisiondetection = false,
-							collision_removal = false,
-							object_collision = false,
-							texture = "torrl_nodes_trec_unit_interactable.png",
-							glow = 13,
-						})
 
 						if collision.y == pos.y and math.abs(pos.y - target.y) > 1 then
 							local offset = collision:offset(0, (pos.y - collision.y > 0 and 0 or 1), 0)

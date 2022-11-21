@@ -2,7 +2,7 @@
 # Taken from my CTF script
 
 MOD_PREFIX=mtg_
-MODS_TO_KEEP=(creative fire player_api screwdriver sfinv tnt)
+MODS_TO_KEEP=(creative player_api screwdriver sfinv)
 
 cd ./mods/mtg/ && {
 	git clone git@github.com:minetest/minetest_game.git

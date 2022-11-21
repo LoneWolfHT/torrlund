@@ -4,12 +4,22 @@ minetest.register_on_dieplayer(function(player)
 	levitating[player:get_player_name()] = nil
 end)
 
-local RECHARGE_TIME = 1.5 * 10 -- 10 second cooldown
+local RECHARGE_TIME = 1.5 * 8 -- 8 second cooldown
 local SMASH_RADIUS = 4
 local SMASH_DAMAGE = 15
-local SMASH_KNOCKBACK = 15
+local SMASH_KNOCKBACK = 20
 local function power_func(itemstack, user, pointed_thing)
+	local meta = user:get_meta()
 	local name = user:get_player_name()
+
+	if meta:get_string("torrl_player:trec_unit_status") ~= "placed" then
+		minetest.sound_play({name = "torrl_tools_error"}, {
+			to_player = name,
+			gain = 1,
+		}, true)
+
+		return
+	end
 
 	if pointed_thing and pointed_thing.type == "object" then
 		if not levitating[name] then
@@ -20,10 +30,9 @@ local function power_func(itemstack, user, pointed_thing)
 	end
 
 	if not levitating[name] then
-		local vel = vector.new(0, 16, 0)
+		local vel = vector.new(0, 20, 0)
 
 		user:add_velocity(vel)
-		user:set_physics_override({gravity = 0.5})
 
 		torrl_effects.particle_effect(user, {
 			type = torrl_effects.type.fire,
@@ -45,7 +54,7 @@ local function power_func(itemstack, user, pointed_thing)
 			local player = minetest.get_player_by_name(name)
 
 			if player then
-				player:set_physics_override({gravity = 1})
+				torrl_voiceover.say_sword(name)
 
 				minetest.sound_play({name = "torrl_tools_error"}, {
 					to_player = name,
@@ -71,13 +80,13 @@ local function power_func(itemstack, user, pointed_thing)
 		end)
 
 		return itemstack
-	elseif type(levitating[name]) ~= "string" then
+	elseif type(levitating[name]) == "table" and levitating[name].cancel then
 		local pos = user:get_pos()
 		local target = pos:add(user:get_look_dir():multiply(20))
-		local pointed = minetest.raycast(user:get_pos(), target, false):next()
+		local pointed = minetest.raycast(user:get_pos():offset(0, user:get_properties().eye_height, 0), target, false):next()
 
 		if pointed then
-			user:set_pos(pointed.above)
+			user:set_pos(pointed.above:offset(0, 0.5, 0))
 
 			minetest.sound_play({name = "torrl_tools_woosh"}, {
 				object = user,
@@ -112,10 +121,11 @@ local function power_func(itemstack, user, pointed_thing)
 				end
 			end
 
-			user:set_physics_override({gravity = 1})
-
 			levitating[name]:cancel()
-			levitating[name] = "done"
+			levitating[name] = {"done"}
+			minetest.after(1, function()
+				levitating[name] = "done"
+			end)
 		else
 			minetest.sound_play({name = "torrl_tools_error"}, {
 				to_player = name,
@@ -128,7 +138,7 @@ end
 
 minetest.register_tool("torrl_tools:sword", {
 	description = "Sword of Fire\n" ..
-		"Powers: Melting, Area Damage",
+		"Powers: Melting, Jump Boost->Ground Smash",
 	inventory_image = "torrl_tools_sword.png",
 	tool_capabilities = {
 		full_punch_interval = 0.8,
@@ -139,7 +149,7 @@ minetest.register_tool("torrl_tools:sword", {
 			blastable = {times={[1] = 5.0}, uses = 0, maxlevel = 1},
 			meltable  = {times={[1] = 1.0}, uses = 0, maxlevel = 1},
 		},
-		damage_groups = {alien = 7},
+		damage_groups = {alien = 8},
 	},
 	on_place = power_func,
 	on_secondary_use = power_func,

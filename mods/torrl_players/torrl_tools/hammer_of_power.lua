@@ -26,10 +26,20 @@ minetest.register_tool("torrl_tools:hammer", {
 			breakable = {times={[1] = 0.1}, uses = 0, maxlevel = 1},
 			blastable = {times={[1] = 7.0}, uses = 0, maxlevel = 1},
 		},
-		damage_groups = {alien = 6},
+		damage_groups = {alien = 4},
 	},
 	on_secondary_use = function(itemstack, user, pointed_thing)
+		local meta = user:get_meta()
 		local name = user:get_player_name()
+
+		if meta:get_string("torrl_player:trec_unit_status") ~= "placed" then
+			minetest.sound_play({name = "torrl_tools_error"}, {
+				to_player = name,
+				gain = 1,
+			}, true)
+
+			return
+		end
 
 		if pointed_thing and pointed_thing.type == "object" then
 			if not flinging[name] then
@@ -94,9 +104,13 @@ minetest.register_tool("torrl_tools:hammer", {
 minetest.register_on_player_hpchange(function(player, hp_change, reason)
 	local name = player:get_player_name()
 
-	if reason.type == "fall" and flinging[name] then
-		return 0, true
-	else
-		return hp_change
+	if reason.type == "fall" then
+		if flinging[name] then
+			return 0, true
+		elseif player:get_wielded_item():get_name() == "torrl_tools:hammer" then
+			torrl_voiceover.say_hammer(name)
+		end
 	end
+
+	return hp_change
 end, true)

@@ -5,6 +5,7 @@ torrl_nodes = {
 local modpath = minetest.get_modpath(minetest.get_current_modname())
 
 dofile(modpath.."/repairs.lua")
+dofile(modpath.."/ship_nodes.lua")
 
 --
 --- Processed Blocks, T.R.E.C Unit
@@ -20,6 +21,7 @@ local function register_compressable(name, max, def)
 		paramtype = def.paramtype,
 		sunlight_propogates = def.sunlight_propogates,
 		blast_replace = name.."_2",
+		droppable = true,
 		on_dig = function(pos, node, digger)
 			if digger and digger:is_player() then
 				minetest.node_dig(pos, node, digger)
@@ -94,6 +96,7 @@ dofile(modpath.."/trec_unit.lua")({
 	["torrl_nodes:sand" ]  = "torrl_nodes:glass",
 	["torrl_nodes:tree"]   = "torrl_nodes:repair_tape",
 	["torrl_nodes:leaves"] = "torrl_nodes:repair_tape",
+	["torrl_meteors:meteorite"] = "score",
 })
 
 --
@@ -111,18 +114,21 @@ minetest.register_node("torrl_nodes:dirt", {
 	description = "Dirt",
 	tiles = {"torrl_nodes_dirt.png"},
 	groups = {breakable = 1, compressable = 1},
+	droppable = true,
 })
 
 minetest.register_node("torrl_nodes:sand", {
 	description = "Sand",
 	tiles = {"torrl_nodes_sand.png"},
 	groups = {breakable = 1, compressable = 1},
+	droppable = true,
 })
 
 minetest.register_node("torrl_nodes:stone", {
 	description = "Stone",
 	tiles = {"torrl_nodes_stone.png"},
 	groups = {blastable = 1, compressable = 1},
+	droppable = true,
 })
 
 --
@@ -133,6 +139,7 @@ minetest.register_node("torrl_nodes:tree", {
 	description = "Tree",
 	tiles = {"torrl_nodes_tree.png"},
 	groups = {breakable = 1},
+	droppable = true,
 })
 
 minetest.register_node("torrl_nodes:leaves", {
@@ -142,6 +149,7 @@ minetest.register_node("torrl_nodes:leaves", {
 	sunlight_propogates = true,
 	tiles = {"torrl_nodes_leaves.png"},
 	groups = {breakable = 1},
+	droppable = true,
 })
 
 for name, def in pairs(minetest.registered_nodes) do

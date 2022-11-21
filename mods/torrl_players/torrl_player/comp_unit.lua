@@ -74,6 +74,7 @@ minetest.register_entity("torrl_player:comp_unit", {
 
 		if not self.follow or not self.follow:is_player() then
 			self.object:remove()
+			return
 		end
 
 		local target_pos = self.follow:get_pos():offset(0, 1.5, 0)

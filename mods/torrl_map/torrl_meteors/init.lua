@@ -4,7 +4,7 @@ local function spawn_meteors()
 	local connected = minetest.get_connected_players()
 
 	if #connected >= 1 then
-		local pos = connected[math.random(#connected)]:get_pos()
+		local pos = connected[math.random(#connected)]:get_pos():offset(math.random(-30, 30), 0, math.random(-30, 30))
 		local offset = math.max(140, pos.y+50)
 		pos.y = offset
 
@@ -45,7 +45,13 @@ minetest.register_node("torrl_meteors:meteorite", {
 	description = "Meteorite",
 	tiles = {"torrl_meteors_meteorite.png"},
 	light_source = 5,
-	groups = {meltable = 1, blastable = 1, falling_node = 1},
+	droppable = true,
+	groups = {meltable = 1, blastable = 1, falling_node = 1, compressable = 1},
+	after_dig_node = function(_, _, _, digger)
+		if digger and digger:is_player() then
+			torrl_voiceover.say_meteorite(digger:get_player_name())
+		end
+	end
 })
 
 local fall_speed = 40
@@ -91,7 +97,7 @@ minetest.register_entity("torrl_meteors:meteor", {
 			loop = true,
 		})
 
-		self.object:set_velocity(vector.new(math.random(-30, 30), -fall_speed, math.random(-30, 30)))
+		self.object:set_velocity(vector.new(math.random(-20, 20), -fall_speed, math.random(-20, 20)))
 	end,
 	on_step = function(self, dtime, moveresult)
 		self.timer = (self.timer or 0) + dtime
