@@ -59,14 +59,27 @@ torrl_voiceover = {
 	say_greeting = get_say(1, "greeting", 8.0,
 		"Greetings. Your ship is badly damaged. I will need a tough metal to repair it"
 	),
+	say_abilities = get_say(1, "explain_abilities", 4.5,
+		"Rightclick while holding a tool to activate its ability"
+	),
+	say_abilities_trec = get_say(1, "explain_abilities_trec", 5,
+		"You must place the T.R.E.C Unit to use tool abilities"
+	),
+	say_tools = get_say(1, "explain_tools", 6.0,
+		"You can switch to a different weapon by rightclicking me with your current one"
+	),
 	say_hammer = get_say(1, "explain_hammer", 10.5,
 		"Until your hammer recharges you are immune to fall damage. Try zooming back to the ground next time"
 	),
 	say_sword = get_say(1, "explain_sword", 9.5,
 		"You can rightclick with your sword a second time while looking at the ground to do an area damage attack"
 	),
-	say_meteorite = get_say(1, "explain_meteorite", 8,
-		"That will work, put it in your T.R.E.C Unit. To repair the ship I need 5 for every passenger"
+	say_meteorite = get_say(1, "explain_meteorite", 13.2,
+		"That will work, put it in your T.R.E.C Unit. To repair the ship I need 5 for every passenger. " ..
+		"Keep an eye out for meteors"
+	),
+	say_compress = get_say(1, "explain_compress", 8.8,
+		"You can use your T.R.E.C unit to compress blocks, which will be helpful for protecting the T.R.E.C unit"
 	),
 	say_detected = get_say(2, "detected", 3.5,
 		"Alien ship detected. Protect the T.R.E.C Unit"

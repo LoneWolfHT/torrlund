@@ -5,16 +5,12 @@ local function spawn_meteors()
 
 	if #connected >= 1 then
 		local pos = connected[math.random(#connected)]:get_pos():offset(math.random(-30, 30), 0, math.random(-30, 30))
-		local offset = math.max(140, pos.y+50)
+		local offset = math.max(100, pos.y+50)
 		pos.y = offset
 
-		minetest.emerge_area(pos:offset(10, 2, 10), pos:offset(-10, -offset, -10), function(_, _, remaining)
+		minetest.emerge_area(pos:offset(20, 6, 20), pos:offset(-20, -offset, -20), function(_, _, remaining)
 			if remaining <= 0 then
 				minetest.add_entity(pos, "torrl_meteors:meteor")
-
-				if math.random(20) == 2 then
-					minetest.after(2, minetest.add_entity, pos, "torrl_meteors:meteor")
-				end
 			end
 		end)
 	end
@@ -34,7 +30,7 @@ if not minetest.settings:get_bool("creative_mode", false) then
 		if timer >= target_time then
 			timer = 0
 
-			target_time = 60 * math.random(5, 10)
+			target_time = 60 * math.random(2, 5)
 
 			spawn_meteors()
 		end

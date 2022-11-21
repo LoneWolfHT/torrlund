@@ -243,7 +243,7 @@ minetest.register_globalstep(function(dtime)
 				torrl_voiceover.say_detected()
 
 				local pos1, pos2 = pos:add(SHIP_SIZE), pos:subtract(SHIP_SIZE)
-				minetest.emerge_area(pos:add(SHIP_SIZE), pos:subtract(SHIP_SIZE), function(_, _, remaining)
+				minetest.emerge_area(pos1, pos2, function(_, _, remaining)
 					if remaining <= 0 then
 						torrl_effects.explosion(pos, SHIP_SIZE/1.5, torrl_effects.type.alien, function()
 							minetest.after(4, function()

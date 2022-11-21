@@ -1,6 +1,7 @@
 local min, max = math.min, math.max
 
 local flinging = {}
+local clicked = {}
 
 minetest.register_on_dieplayer(function(player)
 	local name = player:get_player_name()
@@ -28,15 +29,28 @@ minetest.register_tool("torrl_tools:hammer", {
 		},
 		damage_groups = {alien = 4},
 	},
+	after_use = function(_, user)
+		if user and user:is_player() then
+			local name = user:get_player_name()
+
+			if not clicked[name] then
+				torrl_voiceover.say_abilities(name)
+			end
+		end
+	end,
 	on_secondary_use = function(itemstack, user, pointed_thing)
 		local meta = user:get_meta()
 		local name = user:get_player_name()
+
+		clicked[name] = true
 
 		if meta:get_string("torrl_player:trec_unit_status") ~= "placed" then
 			minetest.sound_play({name = "torrl_tools_error"}, {
 				to_player = name,
 				gain = 1,
 			}, true)
+
+			torrl_voiceover.say_abilities_trec(name)
 
 			return
 		end
@@ -86,6 +100,8 @@ minetest.register_tool("torrl_tools:hammer", {
 
 				if player then
 					player:set_physics_override({gravity = 1})
+
+					minetest.after(0.2, torrl_voiceover.say_tools, name)
 
 					minetest.sound_play({name = "torrl_tools_charged"}, {
 						to_player = name,

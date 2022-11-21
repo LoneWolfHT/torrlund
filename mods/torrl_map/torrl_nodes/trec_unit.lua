@@ -75,7 +75,7 @@ minetest.register_globalstep(function(dtime)
 		scoretimer = 0
 
 		local players = minetest.get_connected_players()
-		if score >= #players * 5 then
+		if score >= math.max(#players, 1) * 5 then
 			minetest.chat_send_all(minetest.colorize(
 				"cyan",
 				"<C.O.M.P Unit> Repairing ship, stand by..."
@@ -120,9 +120,12 @@ return function(compressables)
 				for from, to in pairs(compressables) do
 					if iname == from then
 						if to == "score" then
+							local name = clicker:get_player_name()
 							score = score + itemstack:get_count()
 
-							minetest.chat_send_player(clicker:get_player_name(), ("Need %d more to repair ship"):format(
+							torrl_voiceover.say_compress(name)
+
+							minetest.chat_send_player(name, ("Need %d more to repair ship"):format(
 								math.max((#minetest.get_connected_players() * 5) - score, 0)
 							))
 						else
@@ -132,6 +135,11 @@ return function(compressables)
 								clicker:get_inventory():add_item("main", itemstack)
 							end)
 						end
+
+						minetest.sound_play({name = "torrl_nodes_compress"}, {
+							pos = pos,
+							max_hear_distance = 8
+						}, true)
 
 						return ""
 					end
@@ -148,6 +156,7 @@ return function(compressables)
 					if owner then
 						owner:get_meta():set_string("torrl_player:trec_unit_status", "dead")
 						trec_unit.remove_hud(owner)
+						owner:set_hp(0)
 					end
 				end
 

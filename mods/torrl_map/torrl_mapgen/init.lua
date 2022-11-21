@@ -1,3 +1,5 @@
+local modpath = minetest.get_modpath(minetest.get_current_modname()) .. "/"
+
 local config = Settings(minetest.get_worldpath() .. "/world.mt")
 if config:get("backend") ~= "dummy" then
 	config:set("backend","dummy")
@@ -5,6 +7,7 @@ if config:get("backend") ~= "dummy" then
 end
 
 minetest.set_mapgen_setting("mg_name", "flat", true)
+minetest.set_mapgen_setting("seed", "13376942691337", true)
 minetest.set_mapgen_setting("mg_flags", "nocaves, nodungeons, light, decorations, biomes", true)
 minetest.set_mapgen_setting("mgflat_spflags", "hills, lakes", true)
 minetest.set_mapgen_setting("mgflat_hill_threshhold", "0.4", true)
@@ -17,7 +20,7 @@ minetest.set_mapgen_setting(
 		"0"              , --offset
 		"1"              , --scale
 		"(140, 100, 140)", --spread
-		"10441740"     , --seed
+		"421337" , --seed
 		"5"              , --octaves
 		"0.4"            , --persistence
 		"3"              , --lacunarity
@@ -26,7 +29,7 @@ minetest.set_mapgen_setting(
 	true
 )
 
-dofile(minetest.get_modpath(minetest.get_current_modname()).."/structures.lua")
+dofile(modpath.."structures.lua")
 
 minetest.register_alias("mapgen_stone", "torrl_nodes:stone")
 
@@ -109,3 +112,22 @@ minetest.register_biome({
 	heat_point = 50,
 	humidity_point = 35,
 })
+
+local SHIP_SIZE = 11
+minetest.after(0, function()
+	local pos = vector.new(0, 9999, 0)
+	minetest.emerge_area(pos:add(SHIP_SIZE), pos:subtract(SHIP_SIZE), function(_, _, remaining)
+		if remaining <= 0 then
+			minetest.place_schematic(pos, modpath .. "schematics/ship.mts", "0", nil, true, {
+				place_center_x = true, place_center_y = true, place_center_z = true
+			})
+		end
+	end)
+
+	local crash_pos = vector.new(-5, 4, -4)
+	minetest.emerge_area(crash_pos:add(SHIP_SIZE), crash_pos:subtract(SHIP_SIZE), function(_, _, remaining)
+		if remaining <= 0 then
+			minetest.place_schematic(crash_pos, modpath .. "schematics/ship_crashed.mts", "0", nil, true)
+		end
+	end)
+end)

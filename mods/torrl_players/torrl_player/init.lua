@@ -7,6 +7,7 @@ local modpath = minetest.get_modpath(minetest.get_current_modname()) .. "/"
 dofile(modpath.."comp_unit.lua")
 
 torrl_core.register_on_game_restart(function()
+	minetest.log("action", "Game Restarting...")
 	minetest.set_timeofday(0.22)
 	torrl_player.won = false
 end)
@@ -149,9 +150,18 @@ minetest.register_globalstep(function(dtime)
 	if timer >= 5 then
 		timer = 0
 		local players = minetest.get_connected_players()
+
+		if #players <= 0 then return end
+
 		local found = false
 
 		for _, player in pairs(players) do
+			local hp = player:get_hp()
+
+			if hp > 0 and hp < 20 then
+				player:set_hp(hp + math.random(1, 2)) -- ## Health Regen ##
+			end
+
 			if player:get_meta():get_int("torrl_player:dead") ~= 1 then
 				found = true
 				break
@@ -160,6 +170,7 @@ minetest.register_globalstep(function(dtime)
 
 		if not found then
 			if torrl_player.won then
+				minetest.log("action", "Game Won, Restarting...")
 				minetest.request_shutdown("Resetting Map...", true)
 				return
 			end

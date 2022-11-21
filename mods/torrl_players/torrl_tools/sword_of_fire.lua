@@ -1,4 +1,5 @@
 local levitating = {}
+local clicked = {}
 
 minetest.register_on_dieplayer(function(player)
 	levitating[player:get_player_name()] = nil
@@ -12,11 +13,15 @@ local function power_func(itemstack, user, pointed_thing)
 	local meta = user:get_meta()
 	local name = user:get_player_name()
 
+	clicked[name] = true
+
 	if meta:get_string("torrl_player:trec_unit_status") ~= "placed" then
 		minetest.sound_play({name = "torrl_tools_error"}, {
 			to_player = name,
 			gain = 1,
 		}, true)
+
+		torrl_voiceover.say_abilities_trec(name)
 
 		return
 	end
@@ -151,6 +156,15 @@ minetest.register_tool("torrl_tools:sword", {
 		},
 		damage_groups = {alien = 8},
 	},
+	after_use = function(_, user)
+		if user and user:is_player() then
+			local name = user:get_player_name()
+
+			if not clicked[name] then
+				torrl_voiceover.say_abilities(name)
+			end
+		end
+	end,
 	on_place = power_func,
 	on_secondary_use = power_func,
 })
