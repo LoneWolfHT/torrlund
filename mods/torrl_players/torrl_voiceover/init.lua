@@ -90,4 +90,7 @@ torrl_voiceover = {
 	say_trec = get_say(1, "explain_trec", 8.0,
 		"While your T.R.E.C Unit is placed you will be able to use your tool abilities and respawn"
 	),
+	say_repairing = get_say(1, "repairing", 2.0,
+		"Repairing ship, stand by"
+	),
 }

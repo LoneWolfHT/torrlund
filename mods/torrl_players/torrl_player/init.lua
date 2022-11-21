@@ -89,8 +89,8 @@ minetest.register_on_respawnplayer(function(player)
 			gameover_huds[name] = player:hud_add({
 				position = {x = 0.5, y = 0.5},
 				scale = {x = 100, y = 100},
-				text = "Game Won! It will restart when all players exit the ship",
-				number = 0x00FF00,
+				text = "Game will restart when all players exit the ship",
+				number = 0x6666FF,
 				alignment = {x = 0, y = -1},
 				offset = {x = 0, y = -12},
 				size = {x = 2},

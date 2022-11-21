@@ -76,17 +76,24 @@ minetest.register_globalstep(function(dtime)
 
 		local players = minetest.get_connected_players()
 		if score >= math.max(#players, 1) * 5 then
-			minetest.chat_send_all(minetest.colorize(
-				"cyan",
-				"<C.O.M.P Unit> Repairing ship, stand by..."
-			))
+			torrl_voiceover.say_repairing()
 
 			torrl_player.won = true
 			score = 0
 
-			minetest.after(1, function()
+			minetest.after(3, function()
 				local shippos = vector.new(0, 10001, 0)
 				for _, p in pairs(players) do
+					p:hud_add({
+						position = {x = 0.5, y = 0.3},
+						scale = {x = 100, y = 100},
+						text = "You Won! Congratulations!",
+						number = 0x00FF00,
+						alignment = {x = 0, y = -1},
+						offset = {x = 0, y = -12},
+						size = {x = 2},
+					})
+
 					p:get_inventory():set_list("main", {})
 					p:set_pos(shippos)
 					p:set_hp(20)
@@ -100,6 +107,7 @@ torrl_core.register_on_game_restart(function()
 	score = 0
 end)
 
+local compressed = {}
 return function(compressables)
 	minetest.register_node("torrl_nodes:trec_unit", {
 		description = "T.R.E.C Unit",
@@ -119,17 +127,22 @@ return function(compressables)
 
 				for from, to in pairs(compressables) do
 					if iname == from then
+						local name = clicker:get_player_name()
+
 						if to == "score" then
-							local name = clicker:get_player_name()
 							score = score + itemstack:get_count()
 
-							torrl_voiceover.say_compress(name)
+							if not compressed[name] then
+								torrl_voiceover.say_compress(name)
+							end
 
 							minetest.chat_send_player(name, ("Need %d more to repair ship"):format(
 								math.max((#minetest.get_connected_players() * 5) - score, 0)
 							))
 						else
 							itemstack:set_name(to)
+
+							compressed[name] = true
 
 							minetest.after(0, function()
 								clicker:get_inventory():add_item("main", itemstack)
