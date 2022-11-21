@@ -28,5 +28,6 @@ globals = {
 exclude_files = {
 	"mods/mtg/mtg_*",
 	"mods/ext_libs/",
-	"mobs/torrl_map/modgen_mod_export/"
+	"mods/show_wielded_item/",
+	"mods/wield3d/",
 }
