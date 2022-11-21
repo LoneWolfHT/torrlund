@@ -1,5 +1,5 @@
 # Torrlund
-RIP
+Your ship has crashed, armed with a few tools and a robot you must harvest meteorites to repair your ship while fighting off hordes of aliens
 
 # Things not created during the jam
 * `mods/mtg/*` Mods from MTG
