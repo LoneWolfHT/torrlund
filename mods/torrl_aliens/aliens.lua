@@ -56,6 +56,11 @@ creatura.register_utility("torrl_aliens:attack_player", function(selfa)
 	selfa:set_utility(function(self)
 		if self.target_player and not self.temp_brainded then
 			local pos = self.target_player:get_pos()
+			if not pos then
+				self.target_player = nil
+				return
+			end
+
 			local spos = self:get_center_pos()
 
 			self.target_pos = pos
@@ -280,7 +285,9 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 			utility = "torrl_aliens:seek_player",
 			get_score = function(self)
 				if self.target_player and self.target_pos then
-					if self.object:get_pos():distance(self.target_player:get_pos()) > player_chase_range_max then
+					local tpos = self.target_player:get_pos()
+
+					if not tpos or self.object:get_pos():distance(tpos) > player_chase_range_max then
 						self.target_player = nil
 						self.target_pos = nil
 
