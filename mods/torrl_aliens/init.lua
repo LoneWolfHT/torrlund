@@ -80,7 +80,7 @@ end
 local ALIEN_SHIP_YPOS = 66
 local ALIEN_SHIP_PR = 40
 local SHIP_SIZE = 20
-local MAX_ALIEN_COUNT = 12
+local MAX_ALIEN_COUNT = 6 + (#minetest.get_connected_players() * 2)
 
 local current_ships = {}
 
