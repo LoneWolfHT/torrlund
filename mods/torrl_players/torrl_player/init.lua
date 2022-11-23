@@ -59,6 +59,7 @@ minetest.register_on_respawnplayer(function(player)
 		local name = player:get_player_name()
 
 		meta:set_int("torrl_player:dead", 1)
+		player_api.player_attached[name] = true
 		player:set_properties({visible = false})
 		player:set_nametag_attributes({
 			text = "",
@@ -120,6 +121,7 @@ local function resurrect(player, name, meta)
 	meta:set_int("torrl_player:dead", 0)
 
 	player:set_hp(20)
+	player_api.player_attached[name] = false
 	player:set_properties({visible = true})
 	player:set_nametag_attributes({
 		text = name,
@@ -134,6 +136,8 @@ local function resurrect(player, name, meta)
 	privs.fly = nil
 	privs.fast = nil
 	privs.noclip = nil
+
+	player:set_pos(vector.new(0, 9, 0))
 	minetest.set_player_privs(name, privs)
 
 	if gameover_huds[name] then
@@ -208,7 +212,6 @@ minetest.register_on_joinplayer(function(player)
 	end
 
 	player:set_pos(vector.new(0, 9, 0))
-	player:set_look_horizontal(math.pi) -- Face the mountain across the spawn ravine
 end)
 
 minetest.after(0, torrl_core.game_restart)

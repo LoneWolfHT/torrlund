@@ -7,7 +7,7 @@ globals = {
 
 	"trec_unit",
 
-	"creatura", "fire",
+	"creatura", "fire", "player_api",
 
 	"VoxelManip", "VoxelArea", "PseudoRandom", "ItemStack",
 	"Settings",
