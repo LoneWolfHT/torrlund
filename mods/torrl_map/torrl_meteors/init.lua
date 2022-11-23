@@ -3,14 +3,20 @@ local timer = 0
 local function spawn_meteors()
 	local connected = minetest.get_connected_players()
 
-	if #connected >= 1 then
-		local pos = connected[math.random(#connected)]:get_pos():offset(math.random(-30, 30), 0, math.random(-30, 30))
-		local offset = math.max(100, pos.y+50)
-		pos.y = offset
+	for i in pairs(connected) do
+		minetest.after(math.random(0, math.min(i*10, 50)), function()
+			if #connected >= 1 then
+				if math.random(3) ~= 1 then
+					local pos = connected[math.random(#connected)]:get_pos():offset(math.random(-30, 30), 0, math.random(-30, 30))
+					local offset = math.max(100, pos.y+50)
+					pos.y = offset
 
-		minetest.emerge_area(pos:offset(20, 6, 20), pos:offset(-20, -offset, -20), function(_, _, remaining)
-			if remaining <= 0 then
-				minetest.add_entity(pos, "torrl_meteors:meteor")
+					minetest.emerge_area(pos:offset(20, 6, 20), pos:offset(-20, -offset, -20), function(_, _, remaining)
+						if remaining <= 0 then
+							minetest.add_entity(pos, "torrl_meteors:meteor")
+						end
+					end)
+				end
 			end
 		end)
 	end
@@ -30,7 +36,7 @@ if not minetest.settings:get_bool("creative_mode", false) then
 		if timer >= target_time then
 			timer = 0
 
-			target_time = 60 * math.random(2, 5)
+			target_time = 60 * math.random(4, 6) -- Every 5 minutes would be 4 times every ingame 24 hours (?)
 
 			spawn_meteors()
 		end
