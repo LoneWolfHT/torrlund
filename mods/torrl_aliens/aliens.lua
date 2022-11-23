@@ -98,20 +98,35 @@ end)
 minetest.register_node("torrl_aliens:fresh_stepping_stool", {
 	description = "Alien stepping stool",
 	tiles = {"torrl_alien_fresh_stepping_stool.png"},
-	groups = {breakable = 1, bouncy = 60, fall_damage_add_percent = -50},
+	groups = {breakable = 1, bouncy = 60, fall_damage_add_percent = -60, compressable = 1},
+})
+
+minetest.register_node("torrl_aliens:unstable_stepping_stool", {
+	description = "Unstable alien stepping stool",
+	tiles = {"torrl_alien_fresh_stepping_stool.png^[multiply:#aa2222"},
+	drop = "",
+	paramtype = "light",
+	light_source = 8,
+	groups = {bouncy = 30, fall_damage_add_percent = -30, meltable = 1, blastable = 1},
+	explosive = 3,
+	explosion_type = torrl_effects.type.alien,
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		torrl_effects.explosion(pos, 3, torrl_effects.type.alien)
+	end,
 })
 
 local player_chase_range = 6
-local player_chase_range_max = 40
+local player_chase_range_max = 30
+local DIG_INTERVAL = 2
 creatura.register_mob("torrl_aliens:alien_mini", {
-	max_health = 40,
-	damage = 2,
+	max_health = 20,
+	damage = 1,
 	armor_groups = {alien = 100},
 	speed = 5,
 	tracking_range = 6, -- not used AFAIK because I'm a noob
 	turn_rate = 8,
 	alien = true,
-	max_fall = 80,
+	max_fall = 0,
 	despawn_after = 60 * 3,
 	mesh = "torrl_aliens_alien_mini.b3d",
 	textures = {"torrl_aliens_alien_mini.png"},
@@ -154,7 +169,7 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 	step_func = function(self, dtime, moveresult)
 		self.look_timer = (self.look_timer or math.random(-1, 1)) + dtime
 
-		if self.target_pos and self.look_timer >= 3 then
+		if self.target_pos and self.look_timer >= DIG_INTERVAL then
 			self.look_timer = 0
 
 			local pos = self.object:get_pos()

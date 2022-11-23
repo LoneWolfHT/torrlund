@@ -13,13 +13,13 @@ minetest.register_node("torrl_aliens:ship_armor", {
 	drop = "",
 	tiles = {"torrl_aliens_ship_armor.png"},
 	light_source = 3,
-	groups = {blastable = 1},
+	groups = {blastable = 1, meltable = 1},
 })
 
 minetest.register_node("torrl_aliens:ship_core", {
 	description = "Alien Ship Core",
-	drop = "",
 	tiles = {"torrl_aliens_ship_core.png"},
+	drop = "",
 	paramtype = "light",
 	light_source = 8,
 	groups = {breakable = 1},
@@ -39,7 +39,7 @@ minetest.register_node("torrl_aliens:ship_turret", {
 	use_texture_alpha = "clip",
 	light_source = 4,
 	tiles = {"torrl_aliens_ship_turret.png"},
-	groups = {blastable = 1},
+	groups = {blastable = 1, meltable = 1},
 	explosive = 1,
 	explosion_type = torrl_effects.type.alien,
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
@@ -72,15 +72,15 @@ minetest.register_entity("torrl_aliens:laser_beam", {
 
 local SHIP_SHOOT_INTERVAL = 30
 local ALIEN_SHIP_INTERVAL = function()
-	return math.random(60, math.max(60 * (5 - #minetest.get_connected_players()), 90))
+	return math.random(60, math.max(80, 60 * (5 - #minetest.get_connected_players())))
 end
 local ALIEN_LASER_RADIUS = function()
-	return math.ceil(#minetest.get_connected_players()/2)
+	return math.max(1, math.min(5, math.ceil(#minetest.get_connected_players()/2)))
 end
 local ALIEN_SHIP_YPOS = 66
 local ALIEN_SHIP_PR = 40
 local SHIP_SIZE = 20
-local MAX_ALIEN_COUNT = 8
+local MAX_ALIEN_COUNT = 12
 
 local current_ships = {}
 

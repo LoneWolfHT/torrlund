@@ -96,6 +96,7 @@ dofile(modpath.."/trec_unit.lua")({
 	["torrl_nodes:sand" ]  = "torrl_nodes:glass",
 	["torrl_nodes:tree"]   = "torrl_nodes:repair_tape",
 	["torrl_nodes:leaves"] = "torrl_nodes:repair_tape",
+	["torrl_aliens:fresh_stepping_stool"] = "torrl_aliens:unstable_stepping_stool",
 	["torrl_meteors:meteorite"] = "score",
 })
 
@@ -129,6 +130,11 @@ minetest.register_node("torrl_nodes:stone", {
 	tiles = {"torrl_nodes_stone.png"},
 	groups = {blastable = 1, compressable = 1},
 	droppable = true,
+	on_torrl_blast = function(pos)
+		if math.random(2) == 1 then
+			minetest.add_item(pos, "torrl_nodes:stone")
+		end
+	end
 })
 
 --
