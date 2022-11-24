@@ -10,7 +10,7 @@ minetest.register_globalstep(function(dtime)
 		local day = "day"
 
 		if time >= 0.82 or time <= 0.18 then
-			day = math.random(2) and "theme" or "night"
+			day = "night"
 		end
 
 		if torrl_player.won then
@@ -29,7 +29,7 @@ minetest.register_globalstep(function(dtime)
 					loop = true,
 				})
 			else
-				local vol = (day == "day" and 1 or 1.4) - math.min(0.9, player:get_hp()/20)
+				local vol = (1.1 + 0.2) - math.max(0.2, (player:get_hp() / 20) * 1.1)
 
 				if day == "themewin" then
 					vol = 1.1
