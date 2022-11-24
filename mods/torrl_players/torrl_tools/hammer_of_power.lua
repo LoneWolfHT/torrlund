@@ -23,8 +23,7 @@ minetest.register_tool("torrl_tools:hammer", {
 		max_drop_level = 1,
 		punch_attack_uses = 0,
 		groupcaps = {
-			fleshy = {times={[1] = 0.1}, uses = 0, maxlevel = 1},
-			breakable = {times={[1] = 0.1}, uses = 0, maxlevel = 1},
+			breakable = {times={[1] = 0.2}, uses = 0, maxlevel = 1},
 			blastable = {times={[1] = 7.0}, uses = 0, maxlevel = 1},
 		},
 		damage_groups = {alien = 4},

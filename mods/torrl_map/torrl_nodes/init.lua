@@ -131,7 +131,7 @@ minetest.register_node("torrl_nodes:stone", {
 	groups = {blastable = 1, compressable = 1},
 	droppable = true,
 	on_torrl_blast = function(pos)
-		if math.random(2) == 1 then
+		if math.random(4) == 1 then
 			minetest.add_item(pos, "torrl_nodes:stone")
 		end
 	end
