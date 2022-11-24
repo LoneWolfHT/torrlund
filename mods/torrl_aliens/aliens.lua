@@ -66,7 +66,7 @@ creatura.register_utility("torrl_aliens:attack_player", function(selfa)
 			self.target_pos = pos
 
 			if os.clock() - (self.last_hit or 0) > 3 and pos:distance(spos) <= 1.5 then
-				local leap_vel = pos:direction(spos):multiply(2)
+				local leap_vel = pos:direction(spos):multiply(3)
 				leap_vel.y = 1
 
 				self:punch_target(self.target_player)
@@ -76,20 +76,6 @@ creatura.register_utility("torrl_aliens:attack_player", function(selfa)
 				self.last_hit = os.clock()
 			elseif not self.temp_braindead then
 				creatura.action_move(self, pos, 1)
-			end
-		end
-	end)
-end)
-
-creatura.register_utility("torrl_aliens:seek_player", function(selfa)
-	selfa:set_utility(function(self)
-		if self.target_player and self.target_pos then
-			if self.target_pos:distance(self.object:get_pos()) <= 3 then
-
-				self.target_player = nil
-				self.target_pos = nil
-			elseif not self.temp_brainded then
-				creatura.action_move(self, self.target_pos, 10)
 			end
 		end
 	end)
@@ -115,8 +101,7 @@ minetest.register_node("torrl_aliens:unstable_stepping_stool", {
 	end,
 })
 
-local player_chase_range = 6
-local player_chase_range_max = 30
+local player_chase_range = 14
 local DIG_INTERVAL = 2
 creatura.register_mob("torrl_aliens:alien_mini", {
 	max_health = 20,
@@ -174,7 +159,7 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 
 			local pos = self.object:get_pos()
 
-			if pos:distance(self.target_pos) <= 1 then
+			if pos:distance(self.target_pos) <= 1.4 then
 				minetest.dig_node(self.target_pos)
 				self.target_pos = nil
 				return
@@ -252,7 +237,9 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 			utility = "torrl_aliens:attack_player",
 			get_score = function(self)
 				-- prioritize trec chasing if close to one
-				if not self.target_player and self.target_pos and self.object:get_pos():distance(self.target_pos) <= 5 then
+				if not self.target_player and self.target_pos and
+				self.object:get_pos():distance(self.target_pos) <= player_chase_range*0.7
+				then
 					return 0
 				end
 
@@ -262,7 +249,7 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 					return 0
 				else
 					local pos = self.object:get_pos()
-					local closest_dist = player_chase_range_max
+					local closest_dist = player_chase_range+1
 					local closest_p
 					local sight = false
 
@@ -295,25 +282,6 @@ creatura.register_mob("torrl_aliens:alien_mini", {
 
 				return 0
 			end,
-		},
-		{
-			utility = "torrl_aliens:seek_player",
-			get_score = function(self)
-				if self.target_player and self.target_pos then
-					local tpos = self.target_player:get_pos()
-
-					if not tpos or self.object:get_pos():distance(tpos) > player_chase_range_max then
-						self.target_player = nil
-						self.target_pos = nil
-
-						return 0
-					end
-
-					return 1.5, {self}
-				end
-
-				return 0
-			end
 		},
 	},
 })
