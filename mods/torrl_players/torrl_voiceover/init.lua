@@ -1,25 +1,75 @@
-local saying = {}
+local saying = {
+--[[
+	["<playername>"] = {
+	_name = filename,
+	_soundhandle = handle of currently playing sound
+	_timer = timer until the next sound is played
+	}
+]]
+}
+
+minetest.register_on_leaveplayer(function(player)
+	local name = player:get_player_name()
+
+	if saying[name]._timer then
+		saying[name]._timer:cancel()
+	end
+
+	saying[name] = nil
+end)
 
 local function say(pname, file, time, text)
+	minetest.log("error", "Voice Error, uninitialized version of say() called")
+end
+
+local function next(pname)
+	if not saying[pname] then return end
+
+	if saying[pname]._timer then
+		saying[pname]._timer:cancel()
+		saying[pname]._timer = nil
+	end
+
+	if saying[pname]._soundhandle then
+		minetest.sound_stop(saying[pname]._soundhandle)
+		saying[pname]._soundhandle = nil
+
+		minetest.sound_play({name = "torrl_voiceover_skip"}, {
+			to_player = pname,
+			gain = 0.5,
+		}, true)
+	end
+
+	if #saying[pname] >= 1 and minetest.get_player_by_name(pname) then
+		say(pname, unpack(table.remove(saying[pname], 1)))
+		return
+	end
+
+	saying[pname] = nil
+end
+
+function say(pname, file, time, text)
 	saying[pname]._name = file
 
-	minetest.sound_play({name = "torrl_voiceover_"..file}, {
-		to_player = pname,
-		gain = 1,
-	}, true)
+	minetest.after(0.5, function()
+		if not saying[pname] then return end
 
-	minetest.chat_send_player(pname, minetest.colorize(
-		"cyan",
-		"<C.O.M.P Unit> " .. text
-	))
+		saying[pname]._soundhandle = minetest.sound_play({name = "torrl_voiceover_"..file}, {
+			to_player = pname,
+			gain = 1,
+		})
 
-	minetest.after(time+1, function()
-		if #saying[pname] >= 1 and minetest.get_player_by_name(pname) then
-			say(pname, unpack(table.remove(saying[pname], 1)))
-			return
-		end
+		minetest.chat_send_player(pname, minetest.colorize(
+			"cyan",
+			"<C.O.M.P Unit> " .. text
+		))
 
-		saying[pname] = nil
+		saying[pname]._timer = minetest.after(time+1, function()
+			saying[pname]._timer = nil
+			saying[pname]._soundhandle = nil
+
+			next()
+		end)
 	end)
 end
 
@@ -56,6 +106,18 @@ local function get_say(times, file, time, text)
 end
 
 torrl_voiceover = {
+	skip = function(pname)
+		if not pname then
+			for _, p in pairs(minetest.get_connected_players()) do
+				next(p:get_player_name())
+			end
+
+			return
+		end
+
+		next(pname)
+	end,
+
 	say_greeting = get_say(1, "greeting", 8.0,
 		"Greetings. Your ship is badly damaged. I will need a tough metal to repair it"
 	),

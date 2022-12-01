@@ -42,27 +42,15 @@ minetest.register_entity("torrl_player:comp_unit", {
 		automatic_face_movement_dir = -90.0,
 		automatic_face_movement_max_rotation_per_sec = 720,
 
-		infotext = "Your C.O.M.P Unit",
+		infotext = "C.O.M.P Unit",
 		static_save = false,
 	},
 	on_activate = function(self, staticdata, dtime_s)
-		self.object:set_armor_groups({alien=100})
-
-		self.set_nametag = true
-
-		if not self.hp_set then
-			self.object:set_hp(20)
-			self.hp_set = true
-		end
+		self.object:set_armor_groups({immortal = 1})
 	end,
 	on_deactivate = function(self, removal)
 		if self.owner then
-			local obj = spawn_companion(minetest.get_player_by_name(self.owner))
-
-			if obj then
-				obj:set_hp(self.object:get_hp())
-				self.hp_set = true
-			end
+			spawn_companion(minetest.get_player_by_name(self.owner))
 		end
 	end,
 	on_step = function(self, dtime, moveresult)
@@ -91,17 +79,19 @@ minetest.register_entity("torrl_player:comp_unit", {
 		self.object:set_rotation(vector.dir_to_rotation(self.object:get_pos():direction(target_pos)))
 	end,
 	on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
-		if time_from_last_punch > 1 then
-			self.object:add_velocity(vector.multiply(dir, 20))
-		end
-
 		if self.follow and self.follow == puncher then
+			if self.owner and time_from_last_punch > 1 then
+				self.object:add_velocity(vector.multiply(dir, 20))
+				torrl_voiceover.skip(self.owner)
+			end
+
 			self.object:set_hp(self.object:get_hp())
 			return true
 		end
 	end,
 	on_death = function(self, killer)
-		torrl_effects.explosion(self.object:get_pos(), 24, torrl_effects.type.fire)
+		minetest.log("error", "Companion Died: "..dump(self.owner))
+		-- torrl_effects.explosion(self.object:get_pos(), 24, torrl_effects.type.fire)
 	end,
 	on_rightclick = function(self, clicker)
 		if clicker:is_player() and clicker:get_player_name() == self.owner then

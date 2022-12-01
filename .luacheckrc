@@ -11,7 +11,7 @@ globals = {
 
 	"VoxelManip", "VoxelArea", "PseudoRandom", "ItemStack",
 	"Settings",
-	"vector", "table", "string",
+	"vector", "table", "string", "dump",
 	math = {
 		fields = {
 			"round",
