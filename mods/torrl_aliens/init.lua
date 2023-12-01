@@ -1,6 +1,7 @@
 torrl_aliens = {
 	target_list = {},
 	target_list_trecs = {},
+	current_ships = {},
 }
 
 local modpath = minetest.get_modpath(minetest.get_current_modname()) .. "/"
@@ -82,15 +83,13 @@ local ALIEN_SHIP_PR = 40
 local SHIP_SIZE = 20
 local MAX_ALIEN_COUNT = 6 + (#minetest.get_connected_players() * 2)
 
-local current_ships = {}
-
 local function delete_ships()
-	if #current_ships > 0 then
-		for i, pos in pairs(current_ships) do
+	if #torrl_aliens.current_ships > 0 then
+		for i, pos in pairs(torrl_aliens.current_ships) do
 			minetest.delete_area(pos:subtract(SHIP_SIZE), pos:add(SHIP_SIZE))
 		end
 
-		current_ships = {}
+		torrl_aliens.current_ships = {}
 	end
 end
 
@@ -110,7 +109,7 @@ local function shoot(ship)
 
 			repeat
 				if i then table.remove(ship.turrets, i) end
-				if #ship.turrets < 1 or #current_ships < 1 then return end -- ship is dead
+				if #ship.turrets < 1 or #torrl_aliens.current_ships < 1 then return end -- ship is dead
 
 				i = math.random(#ship.turrets)
 
@@ -126,11 +125,6 @@ local function shoot(ship)
 				end)
 
 				return
-			end
-
-			local time = minetest.get_timeofday()
-			if time <= 0.82 and time >= 0.18 then
-				return delete_ships()
 			end
 
 			local dir = pos:direction(ppos)
@@ -191,7 +185,9 @@ end
 local timer = 0
 local target_timer = 0
 local creative = minetest.settings:get_bool("creative_mode", false)
-local target_interval = 20
+local alien_interval = 120
+local alien_interval_night = 20
+local trec_placed = false
 minetest.register_globalstep(function(dtime)
 	target_timer = target_timer + dtime
 
@@ -210,6 +206,8 @@ minetest.register_globalstep(function(dtime)
 			end
 
 			if meta:get_string("torrl_player:trec_unit_status") == "placed" then
+				trec_placed = true
+
 				local trecpos = minetest.string_to_pos(meta:get_string("torrl_player:trec_unit_pos"))
 
 				table.insert(torrl_aliens.target_list, trecpos)
@@ -220,13 +218,21 @@ minetest.register_globalstep(function(dtime)
 
 	if creative then return end
 
+	local target = alien_interval
 	local time = minetest.get_timeofday()
 	if time >= 0.82 or time <= 0.18 then
-		torrl_voiceover.say_followed()
+		target = alien_interval_night
+	end
 
+	if (time >= 0.82 or time <= 0.18) or trec_placed then
 		timer = timer + dtime
-		if timer >= target_interval then
-			target_interval = ALIEN_SHIP_INTERVAL()
+
+		if (timer - (target - 30)) >= 3 then
+			torrl_voiceover.say_followed()
+		end
+
+		if timer >= target then
+			alien_interval_night = ALIEN_SHIP_INTERVAL()
 			timer = 0
 
 			local players = minetest.get_connected_players()
@@ -253,7 +259,7 @@ minetest.register_globalstep(function(dtime)
 
 								local nodes = minetest.find_nodes_in_area(pos1, pos2, "torrl_aliens:ship_turret")
 
-								table.insert(current_ships, pos)
+								table.insert(torrl_aliens.current_ships, pos)
 								shoot({turrets = nodes})
 							end)
 						end)

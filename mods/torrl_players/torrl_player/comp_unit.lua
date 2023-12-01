@@ -1,3 +1,9 @@
+local companions = {}
+
+function torrl_player.get_companion(pname)
+	return companions[pname]
+end
+
 local function spawn_companion(player)
 	if not player or not player:is_player() then
 		minetest.log("error", "[spawn_companion]: Given invalid player")
@@ -11,6 +17,8 @@ local function spawn_companion(player)
 
 	obj:get_luaentity().owner = player:get_player_name()
 	obj:get_luaentity().follow = player
+
+	companions[player:get_player_name()] = obj:get_luaentity()
 
 	return obj
 end
@@ -68,7 +76,7 @@ minetest.register_entity("torrl_player:comp_unit", {
 		local target_pos = self.follow:get_pos():offset(0, 1.5, 0)
 		local distance = self.object:get_pos():distance(target_pos)
 		if distance > 3 and not self.started then
-			self.object:set_velocity(self.object:get_pos():direction(target_pos):multiply(math.min(distance, 15)))
+			self.object:set_velocity(self.object:get_pos():direction(target_pos):multiply(math.min(distance, 30)))
 			self.started = true
 			self.stopped = false
 		elseif not self.stopped then
@@ -112,4 +120,8 @@ minetest.register_entity("torrl_player:comp_unit", {
 
 minetest.register_on_joinplayer(function(player)
 	spawn_companion(player)
+end)
+
+minetest.register_on_leaveplayer(function(player)
+	companions[player:get_player_name()] = nil
 end)

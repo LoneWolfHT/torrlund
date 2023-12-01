@@ -20,13 +20,13 @@ minetest.register_tool("torrl_tools:hammer", {
 	wield_scale = {x = 1, z = 3, y = 1},
 	tool_capabilities = {
 		full_punch_interval = 1,
-		max_drop_level = 1,
-		punch_attack_uses = 0,
 		groupcaps = {
 			breakable = {times={[1] = 0.2}, uses = 0, maxlevel = 1},
-			blastable = {times={[1] = 7.0}, uses = 0, maxlevel = 1},
+			blastable = {times={[1] = 5.0}, uses = 0, maxlevel = 1},
+			meltable  = {times={[1] = 1.0}, uses = 0, maxlevel = 1},
 		},
 		damage_groups = {alien = 4},
+		punch_attack_uses = 0,
 	},
 	after_use = function(_, user)
 		if user and user:is_player() then

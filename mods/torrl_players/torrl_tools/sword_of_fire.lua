@@ -147,14 +147,13 @@ minetest.register_tool("torrl_tools:sword", {
 	inventory_image = "torrl_tools_sword.png",
 	tool_capabilities = {
 		full_punch_interval = 0.8,
-		max_drop_level = 1,
-		punch_attack_uses = 0,
 		groupcaps = {
-			breakable = {times={[1] = 0.5}, uses = 0, maxlevel = 1},
+			breakable = {times={[1] = 0.2}, uses = 0, maxlevel = 1},
 			blastable = {times={[1] = 5.0}, uses = 0, maxlevel = 1},
 			meltable  = {times={[1] = 1.0}, uses = 0, maxlevel = 1},
 		},
 		damage_groups = {alien = 8},
+		punch_attack_uses = 0,
 	},
 	after_use = function(_, user)
 		if user and user:is_player() then

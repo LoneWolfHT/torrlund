@@ -23,6 +23,7 @@ local function say(pname, file, time, text)
 end
 
 local function next(pname)
+	assert(pname)
 	if not saying[pname] then return end
 
 	if saying[pname]._timer then
@@ -36,6 +37,7 @@ local function next(pname)
 
 		minetest.sound_play({name = "torrl_voiceover_skip"}, {
 			to_player = pname,
+			object = torrl_player.get_companion(pname).object,
 			gain = 0.5,
 		}, true)
 	end
@@ -49,6 +51,7 @@ local function next(pname)
 end
 
 function say(pname, file, time, text)
+	assert(pname and file and time and text)
 	saying[pname]._name = file
 
 	minetest.after(0.5, function()
@@ -56,7 +59,8 @@ function say(pname, file, time, text)
 
 		saying[pname]._soundhandle = minetest.sound_play({name = "torrl_voiceover_"..file}, {
 			to_player = pname,
-			gain = 1,
+			object = torrl_player.get_companion(pname).object,
+			gain = 1.2,
 		})
 
 		minetest.chat_send_player(pname, minetest.colorize(
@@ -68,12 +72,13 @@ function say(pname, file, time, text)
 			saying[pname]._timer = nil
 			saying[pname]._soundhandle = nil
 
-			next()
+			next(pname)
 		end)
 	end)
 end
 
 local function get_say(times, file, time, text)
+	assert(times and file and time and text)
 	local said = {}
 
 	local function init(pname)

@@ -9,7 +9,7 @@ minetest.register_globalstep(function(dtime)
 		local time = minetest.get_timeofday()
 		local day = "day"
 
-		if time >= 0.82 or time <= 0.18 then
+		if #torrl_aliens.current_ships > 0 or (time >= 0.82 or time <= 0.18) then
 			day = "night"
 		end
 

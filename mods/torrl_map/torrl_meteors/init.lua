@@ -119,6 +119,7 @@ minetest.register_entity("torrl_meteors:meteor", {
 
 			torrl_effects.explosion(pos, 5, torrl_effects.type.fire, function()
 				minetest.set_node(pos, {name = "torrl_meteors:meteorite"})
+				minetest.check_for_falling(pos)
 				minetest.sound_play({name = "torrl_meteors_meteor_explode"}, {
 					pos = pos,
 					gain = 3.0,

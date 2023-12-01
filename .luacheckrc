@@ -9,6 +9,7 @@ globals = {
 
 	"creatura", "fire", "player_api",
 
+	"unpack",
 	"VoxelManip", "VoxelArea", "PseudoRandom", "ItemStack",
 	"Settings",
 	"vector", "table", "string", "dump",
